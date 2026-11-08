@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SMS Yönlendirici Ayarları"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/editSenderMail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Gönderen Gmail Adresi"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Uygulama Şifresi (16 Hane)"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:id="@+id/editReceiverMail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Alıcı E-posta Adresi"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ayarları Kaydet"
+        android:layout_marginBottom="24dp"/>
+
+    <Switch
+        android:id="@+id/switchService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yönlendirme Servisini Aç/Kapat"
+        android:textSize="16sp" />
+
+</LinearLayout>

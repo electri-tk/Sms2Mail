@@ -1,0 +1,61 @@
+name: Android CI/CD
+
+on:
+  release:
+    types: [published] # Sadece yeni bir Release yayınlandığında 1 kez çalışır
+  workflow_dispatch: # Actions sekmesinde "Run workflow" butonu çıkarır (Manuel)
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Depoyu Klonla (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Java Ortamını Kur (JDK 17)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+        cache: 'gradle'
+
+    - name: Gradle'a Çalıştırma İzni Ver
+      run: chmod +x gradlew
+
+    - name: Projeyi Derle (Assemble APK)
+      run: ./gradlew assembleDebug
+
+    - name: APK Dosyasını Yeniden Adlandır
+      id: rename_apk
+      run: |
+        # Eğer tetikleyici bir release ise tag adını al, manuel ise dal/etiket adını al
+        if [ "${{ github.event_name }}" = "release" ]; then
+          VERSION_TAG="${{ github.event.release.tag_name }}"
+        else
+          VERSION_TAG="${{ github.ref_name }}"
+        fi
+        
+        REPO_NAME="${{ github.event.repository.name }}"
+        NEW_NAME="${REPO_NAME}-${VERSION_TAG}.apk"
+        
+        # Orijinal APK dosyasını yeni ismiyle kopyala/taşı
+        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/$NEW_NAME
+        
+        # Sonraki adımlarda bu yeni ismi kullanabilmek için çıktı (output) olarak kaydet
+        echo "apk_path=app/build/outputs/apk/debug/$NEW_NAME" >> $GITHUB_OUTPUT
+
+    - name: Oluşan APK Dosyasını Yükle (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-apk
+        path: ${{ steps.rename_apk.outputs.apk_path }}
+
+    - name: APK'yı Doğrudan Release Sayfasına Yükle
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ${{ steps.rename_apk.outputs.apk_path }}
