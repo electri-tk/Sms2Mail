@@ -19,9 +19,8 @@ class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val prefs = context.getSharedPreferences("Sms2MailPrefs", Context.MODE_PRIVATE)
-        val isActive = prefs.getBoolean("isActive", false)
+        val isActive = prefs.Boolean("isActive", false)
 
-        // Eğer arayüzden anahtar kapatılmışsa SMS'leri yok say
         if (!isActive) return
 
         val gonderenMail = prefs.getString("sender", "") ?: ""
@@ -30,23 +29,30 @@ class SmsReceiver : BroadcastReceiver() {
 
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+            
+            // Gelen mesaj dizisi boşsa işlem yapma
+            if (messages.isNullOrEmpty()) return
 
+            if (gonderenMail.isEmpty() || uygulamaSifresi.isEmpty() || aliciMail.isEmpty()) {
+                Log.e("Sms2Mail", "Ayarlar eksik olduğu için mail gönderilemedi.")
+                return
+            }
+
+            // Gönderen bilgisini ilk parçadan al
+            val sender = messages[0].displayOriginatingAddress ?: "Bilinmeyen"
+            
+            // Tüm SMS parçalarını tek bir metin halinde birleştir
+            val fullMessageBody = StringBuilder()
             for (sms in messages) {
-                val sender = sms.displayOriginatingAddress ?: "Bilinmeyen"
-                val messageBody = sms.displayMessageBody ?: ""
+                fullMessageBody.append(sms.displayMessageBody ?: "")
+            }
 
-                if (gonderenMail.isEmpty() || uygulamaSifresi.isEmpty() || aliciMail.isEmpty()) {
-                    Log.e("Sms2Mail", "Ayarlar eksik olduğu için mail gönderilemedi.")
-                    return
-                }
-
-                val pendingResult = goAsync()
-                thread {
-                    try {
-                        sendEmail(sender, messageBody, gonderenMail, uygulamaSifresi, aliciMail)
-                    } finally {
-                        pendingResult.finish()
-                    }
+            val pendingResult = goAsync()
+            thread {
+                try {
+                    sendEmail(sender, fullMessageBody.toString(), gonderenMail, uygulamaSifresi, aliciMail)
+                } finally {
+                    pendingResult.finish()
                 }
             }
         }
@@ -55,7 +61,7 @@ class SmsReceiver : BroadcastReceiver() {
     private fun sendEmail(smsSender: String, smsBody: String, mail: String, sifre: String, alici: String) {
         try {
             val properties = Properties()
-            properties["mail.smtp.host"] = "smtp.gmail.com"
+            properties["mail.smtp.host"] = "://gmail.com"
             properties["mail.smtp.port"] = "587"
             properties["mail.smtp.starttls.enable"] = "true"
             properties["mail.smtp.auth"] = "true"
@@ -70,7 +76,7 @@ class SmsReceiver : BroadcastReceiver() {
             message.setFrom(InternetAddress(mail))
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(alici))
             message.subject = "Yeni SMS Geldi: $smsSender"
-            message.setText("Gönderen Numara: $smsSender\n\nMesaj İçeriği:\n$smsBody")
+            message.setText("Gönderen Numara: $smsSender\n\nMesaj İçeriği:\n$smsBody", "UTF-8")
 
             Transport.send(message)
             Log.d("Sms2Mail", "E-posta başarıyla gönderildi!")
