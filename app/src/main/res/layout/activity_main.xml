@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -22,12 +24,19 @@
         android:hint="Gönderen Gmail Adresi"
         android:inputType="textEmailAddress" />
 
-    <EditText
-        android:id="@+id/editPassword"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Uygulama Şifresi (16 Hane)"
-        android:inputType="textPassword" />
+        app:endIconMode="password_toggle">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editPasswordYeni"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Uygulama Şifresi"
+            android:inputType="textPassword" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <EditText
         android:id="@+id/editReceiverMail"
@@ -44,11 +53,10 @@
         android:text="Ayarları Kaydet"
         android:layout_marginBottom="24dp"/>
 
-    <Switch
+    <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/switchService"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Yönlendirme Servisini Aç/Kapat"
-        android:textSize="16sp" />
+        android:text="Servisi Başlat" />
 
 </LinearLayout>

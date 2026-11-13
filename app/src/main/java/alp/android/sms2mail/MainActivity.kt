@@ -11,7 +11,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -26,17 +26,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val editSender = findViewById<EditText>(R.id.editSenderMail)
-        val editPassword = findViewById<EditText>(R.id.editPassword)
+        val editPassword = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editPasswordYeni)
         val editReceiver = findViewById<EditText>(R.id.editReceiverMail)
         val btnSave = findViewById<Button>(R.id.btnSave)
-        val switchService = findViewById<Switch>(R.id.switchService)
+        val switchService = findViewById<SwitchCompat>(R.id.switchService)
 
         // Hafızadaki kayıtlı bilgileri çek
         val prefs = getSharedPreferences("Sms2MailPrefs", Context.MODE_PRIVATE)
         editSender.setText(prefs.getString("sender", ""))
-        editPassword.setText(prefs.getString("password", ""))
         editReceiver.setText(prefs.getString("receiver", ""))
         switchService.isChecked = prefs.getBoolean("isActive", false)
+        editPassword.setText(prefs.getString("password", ""))
 
         // Kaydet butonuna basıldığında bilgileri hafızaya yaz
         btnSave.setOnClickListener {
@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
             }
             Toast.makeText(this, "Ayarlar Kaydedildi!", Toast.LENGTH_SHORT).show()
         }
+
 
         // Switch açılıp kapandığında servisi yönet
         switchService.setOnCheckedChangeListener { _, isChecked ->
@@ -96,4 +97,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                startSmsService()
+                ignoreBatteryOptimizations()
+            } else {
+                Toast.makeText(this, "SMS ve Bildirim izinleri gerekli!", Toast.LENGTH_SHORT).show()
+                findViewById<SwitchCompat>(R.id.switchService).isChecked = false
+            }
+        }
+    }
+
 }
